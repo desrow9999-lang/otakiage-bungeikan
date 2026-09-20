@@ -9,112 +9,138 @@ st.set_page_config(
     layout="centered"
 )
 
+# スタイリッシュ＆お笑い風のカスタムCSS
 st.markdown("""
 <style>
     .stApp {
-        background-color: #0d0f19;
+        background: linear-gradient(135deg, #090a0f 0%, #1a1c29 100%);
         color: #fafaef;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
     .main-title {
-        font-size: 2.0rem;
-        font-weight: 700;
-        letter-spacing: -0.04em;
-        background: linear-gradient(135deg, #ff7e5f 0%, #feb47b 50%, #e6ff6f 100%);
+        font-size: 2.2rem;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        background: linear-gradient(135deg, #ff3366 0%, #ff9933 50%, #ffff33 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+        text-align: center;
         margin-bottom: 0px;
     }
     .sub-title {
         color: #9ca3af;
         font-size: 0.9rem;
-        margin-bottom: 1.5rem;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    .card-senryu {
+        background: linear-gradient(145deg, #1f2937 0%, #111827 100%);
+        border: 2px solid #ff3366;
+        border-radius: 16px;
+        padding: 20px;
+        margin-top: 15px;
+        box-shadow: 0 8px 24px rgba(255, 51, 102, 0.2);
+    }
+    .card-tonchi {
+        background: linear-gradient(145deg, #1f2937 0%, #111827 100%);
+        border: 2px solid #ff9933;
+        border-radius: 16px;
+        padding: 20px;
+        margin-top: 15px;
+        box-shadow: 0 8px 24px rgba(255, 153, 51, 0.2);
+    }
+    .section-header {
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: #e5e7eb;
+        margin-top: 1.5rem;
+        margin-bottom: 0.5rem;
     }
     .stButton button {
-        background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+        background: linear-gradient(135deg, #ff3366 0%, #ff9933 100%);
         color: white;
         border: none;
-        border-radius: 10px;
-        font-weight: 600;
-        padding: 0.8rem 1rem;
-        box-shadow: 0 4px 12px rgba(255, 65, 108, 0.3);
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        padding: 0.9rem 1rem;
+        box-shadow: 0 6px 20px rgba(255, 51, 102, 0.4);
         width: 100%;
+        letter-spacing: 0.05em;
+    }
+    .stButton button:hover {
+        opacity: 0.9;
     }
 </style>
 """, unsafe_allow_html=True)
 
 st.markdown('<p class="main-title">🔥 令和お焚き上げ文芸館</p>', unsafe_allow_html=True)
-st.markdown('<p class="sub-title">あなたの日常のやらかし・失敗・悩みを、笑いとアートに昇華させて供養する総合アミューズメント</p>', unsafe_allow_html=True)
+st.markdown('<p class="sub-title">あなたのやらかしを、笑いとアートで盛大に成仏させる総合バラエティ</p>', unsafe_allow_html=True)
 
-# セッション状態の初期化（入力内容をタブ間で共有するため）
-if "yarakashi_text" not in st.session_state:
-    st.session_state.yarakashi_text = ""
-if "uploaded_img" not in st.session_state:
-    st.session_state.uploaded_img = None
+# 入力セクション
+st.markdown('<p class="section-header">✍️ ステップ1: やらかし・悩みをブチ込む</p>', unsafe_allow_html=True)
+yarakashi_text = st.text_area(
+    "",
+    placeholder="例：靴下に穴が空いていた、深夜の衝動買いで謎の壺を買った、など",
+    height=80
+)
 
-# タブの定義
-tab1, tab2, tab3, tab4 = st.tabs(["🔥 お焚き上げ入力", "🍵 川柳館", "🤔 とんち館", "🎨 美術館ガチャ"])
+st.markdown('<p class="section-header">📸 ステップ2: 証拠品（写真）を添える（任意）</p>', unsafe_allow_html=True)
+uploaded_file = st.file_uploader("", type=["jpg", "jpeg", "png", "webp"])
 
-with tab1:
-    st.markdown("### ✍️ やらかし・悩みを奉納する")
-    st.session_state.yarakashi_text = st.text_area(
-        "最近やらかしたこと、失敗、愚痴などを入力してください",
-        value=st.session_state.yarakashi_text,
-        placeholder="例：ダイエット中なのに夜中にホールケーキを一人で食いつぶした"
-    )
-    
-    st.markdown("### 📸 証拠品（写真）をアップロード（任意）")
-    uploaded_file = st.file_uploader("ブレた写真や失敗の証拠", type=["jpg", "jpeg", "png", "webp"])
-    if uploaded_file is not None:
-        st.session_state.uploaded_img = Image.open(uploaded_file)
-        st.image(st.session_state.uploaded_img, caption="奉納された証拠品", use_container_width=True)
+uploaded_img = None
+if uploaded_file is not None:
+    try:
+        uploaded_img = Image.open(uploaded_file)
+        st.image(uploaded_img, caption="奉納された証拠品", use_container_width=True)
+    except Exception as e:
+        st.error(f"画像の読み込みに失敗しました: {e}")
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+# 実行ボタン（一括生成）
+if st.button("🔥 一網打尽でお焚き上げする（ガチャ回転）"):
+    if not yarakashi_text and uploaded_img is None:
+        st.warning("⚠️ まずはやらかしの内容を入力するか、写真をアップロードしてください！")
+    else:
+        st.balloons() # お笑い風の派手な演出
         
-    st.success("✨ 入力完了！上のタブ（川柳館・とんち館・美術館）に移動して、お焚き上げ結果を確認しよう！")
-
-with tab2:
-    st.markdown("### 🍵 川柳館（五・七・五で供養）")
-    if st.button("✨ 川柳に変換する"):
-        text = st.session_state.yarakashi_text
-        if not text:
-            st.warning("まずは最初のタブで「やらかし」を入力してください！")
-        else:
-            # サンプルの川柳生成ロジック（後でAIや高度な置換に進化可能）
-            phrases_5 = ["深夜の罠", "財布が泣く", "後の祭り", "魔が差した", "冷や汗が"]
-            phrases_7 = ["甘い誘惑負けて食う", "電車の中で爆睡す", "気づいた時にはもう遅い", "全額おごりで顔面蒼白"]
-            phrases_5_end = ["あぁ無常", "明日から本気", "笑うしかない", "天罰覿面"]
+        # 1. 川柳生成
+        phrases_5 = ["まさかの失態", "財布が軽し", "魔が差した夜", "血迷いし日々", "冷や汗タラリ"]
+        phrases_7 = ["気づけばそこは地獄絵図", "全財産が溶けて消える", "満員電車でやらかす", "言い訳探して三千里"]
+        phrases_5_end = ["あぁ無常", "笑うしかない", "明日から本気", "天罰覿面"]
+        
+        senryu_text = f"「{random.choice(phrases_5)}　{random.choice(phrases_7)}　{random.choice(phrases_5_end)}」"
+        
+        st.markdown(f"""
+        <div class="card-senryu">
+            <div style="color: #ff3366; font-weight: bold; font-size: 0.85rem; margin-bottom: 5px;">🍵 【川柳館】本日のドヤ顔一句</div>
+            <h3 style="color:#fafaef; text-align:center; letter-spacing:0.08em; margin: 15px 0;">{senryu_text}</h3>
+            <p style="color:#9ca3af; font-size:0.8rem; text-align:right; margin:0;">奉納テーマ：{yarakashi_text if yarakashi_text else "写真のやらかし"}</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # 2. とんち生成
+        base_keyword = yarakashi_text[:8] if yarakashi_text else "この失敗"
+        tonchi_text = f"「{base_keyword}……」と掛けまして、〈壊れた掛け時計〉と解く。\n\nその心は……どちらも【正しい時間を刻めず、冷や汗をかきます】でしょう！"
+        
+        st.markdown(f"""
+        <div class="card-tonchi">
+            <div style="color: #ff9933; font-weight: bold; font-size: 0.85rem; margin-bottom: 5px;">🤔 【とんち館】無理やり整いました！</div>
+            <p style="color:#fafaef; font-size:1rem; font-weight:bold; white-space: pre-line; line-height: 1.5; margin: 10px 0;">{tonchi_text}</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # 3. 美術館アート生成（写真がある場合）
+        if uploaded_img is not None:
+            st.markdown("""
+            <div style="background: linear-gradient(145deg, #1f2937 0%, #111827 100%); border: 2px solid #ffff33; border-radius: 16px; padding: 20px; margin-top: 15px; box-shadow: 0 8px 24px rgba(255, 255, 51, 0.2);">
+                <div style="color: #ffff33; font-weight: bold; font-size: 0.85rem; margin-bottom: 5px;">🎨 【美術館】証拠品・強制モダンアート化</div>
+            </div>
+            """, unsafe_allow_html=True)
             
-            senryu = f"「{random.choice(phrases_5)}　{random.choice(phrases_7)}　{random.choice(phrases_5_end)}」"
-            st.markdown(f"""
-            <div style="background:#1f2937; padding:20px; border-radius:12px; border-left: 5px solid #ff416c; text-align:center;">
-                <h2 style="color:#fafaef; letter-spacing: 0.1em;">{senryu}</h2>
-                <p style="color:#9ca3af; font-size:0.85rem; margin-top:10px;">奉納文：{text}</p>
-            </div>
-            """, unsafe_allow_html=True)
-    else:
-        st.info("ボタンを押すと、あなたの失敗が風流な（自虐的な）川柳に生まれ変わります。")
-
-with tab3:
-    st.markdown("### 🤔 とんち館（ねづっち風謎かけ）")
-    if st.button("🧠 謎かけで無理やり解決する"):
-        text = st.session_state.yarakashi_text
-        if not text:
-            st.warning("まずは最初のタブで「やらかし」を入力してください！")
-        else:
-            tonchi = f"「{text[:10]}...」と掛けまして、〈真冬の冷蔵庫〉と解く。\n\nその心は……どちらも【開けた瞬間、冷や汗（冷気）が出ます】でしょう！"
-            st.markdown(f"""
-            <div style="background:#1f2937; padding:20px; border-radius:12px; border-left: 5px solid #feb47b;">
-                <p style="font-size:1.1rem; color:#fafaef; font-weight:bold; white-space: pre-line;">{tonchi}</p>
-            </div>
-            """, unsafe_allow_html=True)
-    else:
-        st.info("ボタンを押すと、どんな悩みも強引なとんちでオチにされます。")
-
-with tab4:
-    st.markdown("### 🎨 美術館（失敗写真アートガチャ）")
-    if st.session_state.uploaded_img is not None:
-        if st.button("🎲 失敗写真をお焚き上げアートに変換"):
-            with st.spinner("高衝撃変形エンジン作動中... 🔥"):
-                img = st.session_state.uploaded_img.convert("RGB")
+            with st.spinner("高衝撃変形エンジン作動中... 🚀"):
+                img = uploaded_img.convert("RGB")
                 img = ImageEnhance.Contrast(img).enhance(3.0)
                 
                 styles = ["ネオン・フロー", "グリッチ・ポップ", "抽象的破片"]
@@ -128,11 +154,11 @@ with tab4:
                 else:
                     img = img.filter(ImageFilter.DETAIL)
                 
-                st.success(f"✨ 演出スタイル「{chosen}」でモダンアートとして成仏しました！")
+                st.success(f"✨ 演出スタイル「{chosen}」で盛大に成仏しました！")
                 st.image(img, use_container_width=True)
                 
                 buf = io.BytesIO()
                 img.save(buf, format="PNG")
-                st.download_button("📥 現代アートをダウンロード", data=buf.getvalue(), file_name="otakiage-art.png", mime="image/png")
-    else:
-        st.warning("最初のタブで「証拠品（写真）」をアップロードすると、ここでアートガチャが回せるようになります！")
+                st.download_button("📥 成仏アートをダウンロード (PNG)", data=buf.getvalue(), file_name="otakiage-art.png", mime="image/png")
+else:
+    st.info("💡 テキストや写真を準備してボタンを押すと、すべてのエンタメ変換結果が一気に縦に飛び出します！")
