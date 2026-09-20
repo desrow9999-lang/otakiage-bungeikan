@@ -9,7 +9,7 @@ st.set_page_config(
     layout="centered"
 )
 
-# プロ仕様の洗練されたカスタムCSS（モダンダーク、美しいタイポグラフィと余白）
+# スマホの画面幅でもタイトルがはみ出さないよう調整した洗練されたCSS
 st.markdown("""
 <style>
     .stApp {
@@ -18,40 +18,42 @@ st.markdown("""
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     }
     
-    /* ヒーローヘッダー（プロ仕様の洗練されたデザイン） */
+    /* ヘッダー：スマホでもはみ出さない安全なサイズと余白に修正 */
     .hero-container {
         text-align: center;
-        padding: 2.5rem 1rem 2rem 1rem;
-        background: radial-gradient(circle at center, #1e1b4b 0%, #0b0f19 75%);
+        padding: 1.5rem 1rem 1.5rem 1rem;
+        background: radial-gradient(circle at center, #1e1b4b 0%, #0b0f19 80%);
         border-bottom: 1px solid #1f2937;
-        margin: -4rem -4rem 2rem -4rem; /* Streamlitのデフォルト余白を綺麗にまたぐ */
+        border-radius: 0 0 16px 16px;
+        margin-bottom: 2rem;
     }
     .main-title {
-        font-size: 2.25rem;
+        font-size: 1.6rem;
         font-weight: 800;
-        letter-spacing: -0.03em;
+        letter-spacing: -0.02em;
         background: linear-gradient(135deg, #f43f5e 0%, #fb923c 50%, #facc15 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.4rem;
+        white-space: nowrap; /* スマホで不自然に折れ曲がるのを防ぐ */
     }
     .sub-title {
         color: #9ca3af;
-        font-size: 0.95rem;
+        font-size: 0.8rem;
         font-weight: 400;
-        max-width: 520px;
+        max-width: 480px;
         margin: 0 auto;
-        line-height: 1.5;
+        line-height: 1.4;
     }
 
-    /* 各セクションのカード（高級感のあるシャドウとボーダー） */
+    /* 各セクションのカード */
     .card-senryu {
         background: #111827;
         border: 1px solid #374151;
         border-left: 4px solid #f43f5e;
         border-radius: 12px;
-        padding: 24px;
-        margin-top: 20px;
+        padding: 20px;
+        margin-top: 15px;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
     }
     .card-tonchi {
@@ -59,8 +61,8 @@ st.markdown("""
         border: 1px solid #374151;
         border-left: 4px solid #fb923c;
         border-radius: 12px;
-        padding: 24px;
-        margin-top: 20px;
+        padding: 20px;
+        margin-top: 15px;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
     }
     .card-art {
@@ -68,21 +70,21 @@ st.markdown("""
         border: 1px solid #374151;
         border-left: 4px solid #facc15;
         border-radius: 12px;
-        padding: 24px;
-        margin-top: 20px;
+        padding: 20px;
+        margin-top: 15px;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
     }
 
     .section-label {
         font-weight: 600;
-        font-size: 0.95rem;
+        font-size: 0.9rem;
         color: #e5e7eb;
-        margin-top: 1.5rem;
-        margin-bottom: 0.5rem;
+        margin-top: 1.2rem;
+        margin-bottom: 0.4rem;
         letter-spacing: 0.02em;
     }
 
-    /* プロっぽい洗練されたボタン */
+    /* ボタン */
     .stButton button {
         background: linear-gradient(135deg, #f43f5e 0%, #fb923c 100%);
         color: white;
@@ -104,7 +106,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# プロ仕様のヘッダー
+# ヘッダー
 st.markdown("""
 <div class="hero-container">
     <div class="main-title">🔥 令和お焚き上げ文芸館</div>
@@ -116,7 +118,7 @@ st.markdown("""
 st.markdown('<p class="section-label">✍️ ステップ1: やらかし・悩みを入力する</p>', unsafe_allow_html=True)
 yarakashi_text = st.text_area(
     "",
-    placeholder="例：靴下に大きな穴が空いていた、大事な会議で盛大に噛んだ、など",
+    placeholder="例：1000円カットで変な刈り上げにされた",
     height=90,
     label_visibility="collapsed"
 )
@@ -155,7 +157,7 @@ if st.button("🔥 一網打尽でお焚き上げを実行する"):
         st.markdown(f"""
         <div class="card-senryu">
             <div style="color: #f43f5e; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;">🍵 川柳館 ｜ 本日のドヤ顔一句</div>
-            <h3 style="color:#f3f4f6; text-align:center; font-size: 1.25rem; font-weight: 700; letter-spacing: 0.05em; margin: 15px 0;">{senryu_text}</h3>
+            <h3 style="color:#f3f4f6; text-align:center; font-size: 1.15rem; font-weight: 700; letter-spacing: 0.05em; margin: 12px 0;">{senryu_text}</h3>
             <div style="color: #6b7280; font-size: 0.75rem; text-align: right; margin-top: 10px;">奉納テーマ：{theme}</div>
         </div>
         """, unsafe_allow_html=True)
@@ -171,7 +173,7 @@ if st.button("🔥 一網打尽でお焚き上げを実行する"):
         st.markdown(f"""
         <div class="card-tonchi">
             <div style="color: #fb923c; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;">🤔 とんち館 ｜ 無理やり整いました</div>
-            <div style="color:#f3f4f6; font-size:0.95rem; font-weight: 600; white-space: pre-line; line-height: 1.6; margin-top: 10px;">{tonchi_text}</div>
+            <div style="color:#f3f4f6; font-size:0.9rem; font-weight: 600; white-space: pre-line; line-height: 1.6; margin-top: 10px;">{tonchi_text}</div>
         </div>
         """, unsafe_allow_html=True)
         
