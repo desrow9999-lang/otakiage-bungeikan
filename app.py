@@ -3,7 +3,7 @@ import random
 import urllib.parse
 import streamlit as st
 from PIL import Image, ImageEnhance, ImageOps, ImageFilter
-import google.generativeai as genai
+from google import genai
 
 st.set_page_config(
     page_title="令和お焚き上げ文芸館",
@@ -22,7 +22,7 @@ with st.sidebar:
         "Gemini API キー",
         type="password",
         placeholder="AIによる無限生成に必要です",
-        help="Google AI Studio等で取得したAPIキーを入力してください。ブラウザ内でのみ一時的に使用されます。"
+        help="Google AI Studio等で取得したAPIキーを入力してください。"
     )
     st.markdown("---")
     st.markdown("""
@@ -163,15 +163,13 @@ with tab1:
         else:
             theme = yarakashi_text.strip() if yarakashi_text else "名もなき失態"
             
-            # --- AIによる無限生成処理 ---
             senryu_text = ""
             tonchi_text = ""
             
             if api_key_input:
                 try:
-                    genai.configure(api_key=api_key_input)
-                    # 高速かつ軽量なモデルを使用
-                    model = genai.GenerativeModel('gemini-1.5-flash')
+                    # 新しい google-genai SDK の初期化
+                    client = genai.Client(api_key=api_key_input)
                     
                     prompt = f"""
                     あなたは毒舌かつユーモアあふれるバラエティ番組の構成作家です。
@@ -183,7 +181,7 @@ with tab1:
                     1. 川柳（5・7・5の形式で、哀愁と笑いを誘うもの。「〜かな」「〜けり」などの文語体や、ドヤ顔感のあるフレーズ）
                     2. とんち（「〇〇と掛けまして、××と解く。その心は……」の形式で、キレのあるオチ・ツッコミを入れたもの）
 
-                    出力は必ず以下の形式のJSONまたはテキストで、余計な挨拶は抜きでそれぞれ明確に分けて出力してください。
+                    出力は必ず以下の形式のテキストで、余計な挨拶は抜きでそれぞれ明確に分けて出力してください。
                     [川柳]
                     「〜」
                     [とんち]
@@ -192,10 +190,12 @@ with tab1:
                     """
                     
                     with st.spinner("✨ AIがお焚き上げの文言を無限生成中..."):
-                        response = model.generate_content(prompt)
+                        response = client.models.generate_content(
+                            model='gemini-2.5-flash',
+                            contents=prompt,
+                        )
                         result_str = response.text
                         
-                        # 簡易パース処理
                         lines = result_str.strip().split("\n")
                         s_temp = []
                         t_temp = []
@@ -217,14 +217,12 @@ with tab1:
                         tonchi_text = "\n".join(t_temp).strip()
                         
                         if not senryu_text or not tonchi_text:
-                            # パースに失敗した場合は全文をそのまま割り当て
                             senryu_text = f"「気がつけば　{theme}の　悲劇かな」"
                             tonchi_text = result_str
                             
                 except Exception as e:
                     st.error(f"⚠️ API生成エラー: {e}\nフォールバックとして定型モードで実行します。")
             
-            # APIキー未設定、またはエラー時のフォールバック（従来のランダムプール）
             if not senryu_text or not tonchi_text:
                 fallback_senryus = [
                     f"「気がつけば　{theme}の　悲劇かな」",
@@ -243,14 +241,12 @@ with tab1:
 
             st.balloons()
             
-            # 履歴に保存
             st.session_state.history.insert(0, {
                 "theme": theme,
                 "senryu": senryu_text,
                 "tonchi": tonchi_text
             })
             
-            # 画面出力
             st.markdown(f"""
             <div class="card-senryu">
                 <div style="color: #ff2d55; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;">🍵 川柳館 ｜ 本日のドヤ顔一句</div>
@@ -266,7 +262,6 @@ with tab1:
             </div>
             """, unsafe_allow_html=True)
             
-            # アート変換
             if uploaded_img is not None:
                 st.markdown("""
                 <div class="card-art">
@@ -296,7 +291,6 @@ with tab1:
                     img.save(buf, format="PNG")
                     st.download_button("📥 成仏アートをダウンロード (PNG)", data=buf.getvalue(), file_name="otakiage-art.png", mime="image/png")
 
-            # SNSシェア導線
             st.markdown("<br>", unsafe_allow_html=True)
             share_text = f"私の上手くいかなかった出来事：【{theme}】\n\nAIに盛大にお焚き上げしてもらいました🔥\n\n#令和お焚き上げ文芸館 #今日のやらかし"
             encoded_text = urllib.parse.quote(share_text)
