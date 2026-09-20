@@ -9,7 +9,7 @@ st.set_page_config(
     layout="centered"
 )
 
-# スタイリッシュ＆お笑い風のカスタムCSS
+# スタイリッシュ＆お笑い風のカスタムCSS（タイトルと文章のバランスを調整）
 st.markdown("""
 <style>
     .stApp {
@@ -17,21 +17,24 @@ st.markdown("""
         color: #fafaef;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
+    .header-container {
+        text-align: center;
+        padding: 1.5rem 0 1rem 0;
+    }
     .main-title {
-        font-size: 2.2rem;
+        font-size: 2rem;
         font-weight: 800;
         letter-spacing: -0.03em;
         background: linear-gradient(135deg, #ff3366 0%, #ff9933 50%, #ffff33 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        text-align: center;
-        margin-bottom: 0px;
+        margin-bottom: 0.3rem;
     }
     .sub-title {
         color: #9ca3af;
-        font-size: 0.9rem;
-        text-align: center;
-        margin-bottom: 2rem;
+        font-size: 0.85rem;
+        margin-bottom: 1.5rem;
+        line-height: 1.4;
     }
     .card-senryu {
         background: linear-gradient(145deg, #1f2937 0%, #111827 100%);
@@ -51,7 +54,7 @@ st.markdown("""
     }
     .section-header {
         font-weight: 700;
-        font-size: 1.1rem;
+        font-size: 1rem;
         color: #e5e7eb;
         margin-top: 1.5rem;
         margin-bottom: 0.5rem;
@@ -62,8 +65,8 @@ st.markdown("""
         border: none;
         border-radius: 12px;
         font-weight: 700;
-        font-size: 1.1rem;
-        padding: 0.9rem 1rem;
+        font-size: 1.05rem;
+        padding: 0.8rem 1rem;
         box-shadow: 0 6px 20px rgba(255, 51, 102, 0.4);
         width: 100%;
         letter-spacing: 0.05em;
@@ -74,19 +77,25 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<p class="main-title">🔥 令和お焚き上げ文芸館</p>', unsafe_allow_html=True)
-st.markdown('<p class="sub-title">あなたのやらかしを、笑いとアートで盛大に成仏させる総合バラエティ</p>', unsafe_allow_html=True)
+# ヘッダー部分のバランスを調整
+st.markdown("""
+<div class="header-container">
+    <div class="main-title">🔥 令和お焚き上げ文芸館</div>
+    <div class="sub-title">あなたのやらかしを、笑いとアートで盛大に成仏させる総合バラエティ</div>
+</div>
+""", unsafe_allow_html=True)
 
 # 入力セクション
 st.markdown('<p class="section-header">✍️ ステップ1: やらかし・悩みをブチ込む</p>', unsafe_allow_html=True)
 yarakashi_text = st.text_area(
     "",
-    placeholder="例：靴下に穴が空いていた、深夜の衝動買いで謎の壺を買った、など",
-    height=80
+    placeholder="例：靴下に穴が空いていた、会議で盛大に噛んだ、など",
+    height=80,
+    label_visibility="collapsed"
 )
 
 st.markdown('<p class="section-header">📸 ステップ2: 証拠品（写真）を添える（任意）</p>', unsafe_allow_html=True)
-uploaded_file = st.file_uploader("", type=["jpg", "jpeg", "png", "webp"])
+uploaded_file = st.file_uploader("", type=["jpg", "jpeg", "png", "webp"], label_visibility="collapsed")
 
 uploaded_img = None
 if uploaded_file is not None:
@@ -98,36 +107,44 @@ if uploaded_file is not None:
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# 実行ボタン（一括生成）
+# 実行ボタン
 if st.button("🔥 一網打尽でお焚き上げする（ガチャ回転）"):
     if not yarakashi_text and uploaded_img is None:
         st.warning("⚠️ まずはやらかしの内容を入力するか、写真をアップロードしてください！")
     else:
-        st.balloons() # お笑い風の派手な演出
+        st.balloons()
         
-        # 1. 川柳生成
-        phrases_5 = ["まさかの失態", "財布が軽し", "魔が差した夜", "血迷いし日々", "冷や汗タラリ"]
-        phrases_7 = ["気づけばそこは地獄絵図", "全財産が溶けて消える", "満員電車でやらかす", "言い訳探して三千里"]
-        phrases_5_end = ["あぁ無常", "笑うしかない", "明日から本気", "天罰覿面"]
+        # 1. よりテーマに絡んだセンスのある川柳生成ロジック
+        theme = yarakashi_text.strip() if yarakashi_text else "名もなき失態"
         
-        senryu_text = f"「{random.choice(phrases_5)}　{random.choice(phrases_7)}　{random.choice(phrases_5_end)}」"
+        senryu_templates = [
+            f"「気がつけば　{theme}の　悲劇かな」",
+            f"「全力を　注ぎ込んだ結果が　{theme}」",
+            f"「神様も　思わず二度見す　{theme}」",
+            f"「歴史とは　かくも無残な　{theme}」"
+        ]
+        senryu_text = random.choice(senryu_templates)
         
         st.markdown(f"""
         <div class="card-senryu">
             <div style="color: #ff3366; font-weight: bold; font-size: 0.85rem; margin-bottom: 5px;">🍵 【川柳館】本日のドヤ顔一句</div>
             <h3 style="color:#fafaef; text-align:center; letter-spacing:0.08em; margin: 15px 0;">{senryu_text}</h3>
-            <p style="color:#9ca3af; font-size:0.8rem; text-align:right; margin:0;">奉納テーマ：{yarakashi_text if yarakashi_text else "写真のやらかし"}</p>
+            <p style="color:#9ca3af; font-size:0.8rem; text-align:right; margin:0;">奉納テーマ：{theme}</p>
         </div>
         """, unsafe_allow_html=True)
         
-        # 2. とんち生成
-        base_keyword = yarakashi_text[:8] if yarakashi_text else "この失敗"
-        tonchi_text = f"「{base_keyword}……」と掛けまして、〈壊れた掛け時計〉と解く。\n\nその心は……どちらも【正しい時間を刻めず、冷や汗をかきます】でしょう！"
+        # 2. より機知に富んだ謎かけ生成ロジック
+        tonchi_templates = [
+            f"「{theme}」と掛けまして、〈おろしたての高級じゅうたん〉と解く。\n\nその心は……どちらも【踏み入れた瞬間に、取り返しのつかない絶望（穴・シミ）が訪れます】でしょう！",
+            f"「{theme}」と掛けまして、〈サプライズゲストの登場〉と解く。\n\nその心は……どちらも【誰も望んでいないのに、盛大にやらかします】でしょう！",
+            f"「{theme}」と掛けまして、〈真冬のホラー映画〉と解く。\n\nその心は……どちらも【直視したくない現実がそこにはあります】でしょう！"
+        ]
+        tonchi_text = random.choice(tonchi_templates)
         
         st.markdown(f"""
         <div class="card-tonchi">
             <div style="color: #ff9933; font-weight: bold; font-size: 0.85rem; margin-bottom: 5px;">🤔 【とんち館】無理やり整いました！</div>
-            <p style="color:#fafaef; font-size:1rem; font-weight:bold; white-space: pre-line; line-height: 1.5; margin: 10px 0;">{tonchi_text}</p>
+            <p style="color:#fafaef; font-size:0.95rem; font-weight:bold; white-space: pre-line; line-height: 1.5; margin: 10px 0;">{tonchi_text}</p>
         </div>
         """, unsafe_allow_html=True)
         
