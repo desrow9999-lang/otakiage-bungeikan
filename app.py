@@ -1,5 +1,6 @@
 import random
 import io
+import urllib.parse
 import streamlit as st
 from PIL import Image, ImageEnhance, ImageOps, ImageFilter
 
@@ -9,99 +10,99 @@ st.set_page_config(
     layout="centered"
 )
 
-# スマホの画面幅でもタイトルがはみ出さないよう調整した洗練されたCSS
+# バラエティ番組・WEBメディア風の尖ったカスタムCSS
 st.markdown("""
 <style>
     .stApp {
-        background-color: #0b0f19;
+        background-color: #0d0f18;
         color: #f3f4f6;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     }
     
-    /* ヘッダー：スマホでもはみ出さない安全なサイズと余白に修正 */
+    /* ヘッダー：テレビのバラエティ番組のようなインパクト */
     .hero-container {
         text-align: center;
-        padding: 1.5rem 1rem 1.5rem 1rem;
-        background: radial-gradient(circle at center, #1e1b4b 0%, #0b0f19 80%);
-        border-bottom: 1px solid #1f2937;
-        border-radius: 0 0 16px 16px;
+        padding: 1.8rem 1rem;
+        background: linear-gradient(180deg, #1e1b4b 0%, #0d0f18 100%);
+        border-bottom: 3px solid #f43f5e;
+        border-radius: 0 0 20px 20px;
         margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(244, 63, 94, 0.15);
     }
     .main-title {
-        font-size: 1.6rem;
-        font-weight: 800;
-        letter-spacing: -0.02em;
-        background: linear-gradient(135deg, #f43f5e 0%, #fb923c 50%, #facc15 100%);
+        font-size: 1.65rem;
+        font-weight: 900;
+        letter-spacing: -0.01em;
+        background: linear-gradient(135deg, #ff2d55 0%, #ff9500 50%, #ffcc00 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         margin-bottom: 0.4rem;
-        white-space: nowrap; /* スマホで不自然に折れ曲がるのを防ぐ */
+        white-space: nowrap;
     }
     .sub-title {
         color: #9ca3af;
-        font-size: 0.8rem;
-        font-weight: 400;
+        font-size: 0.78rem;
+        font-weight: 500;
         max-width: 480px;
         margin: 0 auto;
         line-height: 1.4;
     }
 
-    /* 各セクションのカード */
+    /* 禍々しくもポップなカードデザイン */
     .card-senryu {
-        background: #111827;
-        border: 1px solid #374151;
-        border-left: 4px solid #f43f5e;
+        background: #131826;
+        border: 2px solid #374151;
+        border-left: 6px solid #ff2d55;
         border-radius: 12px;
         padding: 20px;
-        margin-top: 15px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        margin-top: 20px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
     }
     .card-tonchi {
-        background: #111827;
-        border: 1px solid #374151;
-        border-left: 4px solid #fb923c;
+        background: #131826;
+        border: 2px solid #374151;
+        border-left: 6px solid #ff9500;
         border-radius: 12px;
         padding: 20px;
-        margin-top: 15px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        margin-top: 20px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
     }
     .card-art {
-        background: #111827;
-        border: 1px solid #374151;
-        border-left: 4px solid #facc15;
+        background: #131826;
+        border: 2px solid #374151;
+        border-left: 6px solid #ffcc00;
         border-radius: 12px;
         padding: 20px;
-        margin-top: 15px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        margin-top: 20px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
     }
 
     .section-label {
-        font-weight: 600;
-        font-size: 0.9rem;
-        color: #e5e7eb;
+        font-weight: 700;
+        font-size: 0.88rem;
+        color: #f9fafb;
         margin-top: 1.2rem;
         margin-bottom: 0.4rem;
-        letter-spacing: 0.02em;
     }
 
-    /* ボタン */
+    /* 爆発力の感じられるCTAボタン */
     .stButton button {
-        background: linear-gradient(135deg, #f43f5e 0%, #fb923c 100%);
+        background: linear-gradient(135deg, #ff2d55 0%, #ff5e3a 100%);
         color: white;
         border: none;
-        border-radius: 10px;
-        font-weight: 700;
-        font-size: 1rem;
-        padding: 0.85rem 1rem;
-        box-shadow: 0 4px 14px rgba(244, 63, 94, 0.3);
+        border-radius: 12px;
+        font-weight: 900;
+        font-size: 1.05rem;
+        padding: 0.9rem 1rem;
+        box-shadow: 0 6px 20px rgba(255, 45, 85, 0.4);
         width: 100%;
         letter-spacing: 0.03em;
         transition: all 0.2s ease;
     }
     .stButton button:hover {
         opacity: 0.95;
-        transform: translateY(-1px);
-        box-shadow: 0 6px 20px rgba(244, 63, 94, 0.4);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(255, 45, 85, 0.6);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -110,12 +111,12 @@ st.markdown("""
 st.markdown("""
 <div class="hero-container">
     <div class="main-title">🔥 令和お焚き上げ文芸館</div>
-    <div class="sub-title">あなたの日常のやらかしや悩みを、ユーモアとアートで盛大に成仏させる総合バラエティプラットフォーム</div>
+    <div class="sub-title">あなたの日常のやらかしや絶望を、ユーモアと毒で盛大に成仏させるバラエティ機関</div>
 </div>
 """, unsafe_allow_html=True)
 
 # 入力セクション
-st.markdown('<p class="section-label">✍️ ステップ1: やらかし・悩みを入力する</p>', unsafe_allow_html=True)
+st.markdown('<p class="section-label">✍️ ステップ1: やらかし・不運・黒歴史を入力する</p>', unsafe_allow_html=True)
 yarakashi_text = st.text_area(
     "",
     placeholder="例：1000円カットで変な刈り上げにされた",
@@ -137,7 +138,8 @@ if uploaded_file is not None:
 st.markdown("<br>", unsafe_allow_html=True)
 
 # 実行ボタン
-if st.button("🔥 一網打尽でお焚き上げを実行する"):
+if st.button("🔥 全力でお焚き上げを実行する"):
+    # 厳格なバリデーション（空入力のガード）
     if not yarakashi_text and uploaded_img is None:
         st.warning("⚠️ まずはやらかしの内容を入力するか、写真をアップロードしてください。")
     else:
@@ -145,19 +147,20 @@ if st.button("🔥 一網打尽でお焚き上げを実行する"):
         
         theme = yarakashi_text.strip() if yarakashi_text else "名もなき失態"
         
-        # 川柳
+        # 多彩なバリエーションの川柳
         senryu_templates = [
             f"「気がつけば　{theme}の　悲劇かな」",
             f"「全力を　注ぎ込んだ結果が　{theme}」",
             f"「神様も　思わず二度見す　{theme}」",
-            f"「歴史とは　かくも無残な　{theme}」"
+            f"「歴史とは　かくも無残な　{theme}」",
+            f"「泣く子も黙る　極上の大失敗　{theme}」"
         ]
         senryu_text = random.choice(senryu_templates)
         
         st.markdown(f"""
         <div class="card-senryu">
-            <div style="color: #f43f5e; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;">🍵 川柳館 ｜ 本日のドヤ顔一句</div>
-            <h3 style="color:#f3f4f6; text-align:center; font-size: 1.15rem; font-weight: 700; letter-spacing: 0.05em; margin: 12px 0;">{senryu_text}</h3>
+            <div style="color: #ff2d55; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;">🍵 川柳館 ｜ 本日のドヤ顔一句</div>
+            <h3 style="color:#f3f4f6; text-align:center; font-size: 1.15rem; font-weight: 800; letter-spacing: 0.05em; margin: 12px 0;">{senryu_text}</h3>
             <div style="color: #6b7280; font-size: 0.75rem; text-align: right; margin-top: 10px;">奉納テーマ：{theme}</div>
         </div>
         """, unsafe_allow_html=True)
@@ -166,22 +169,23 @@ if st.button("🔥 一網打尽でお焚き上げを実行する"):
         tonchi_templates = [
             f"「{theme}」と掛けまして、〈おろしたての高級じゅうたん〉と解く。\n\nその心は……どちらも【踏み入れた瞬間に、取り返しのつかない絶望が訪れます】でしょう！",
             f"「{theme}」と掛けまして、〈サプライズゲストの登場〉と解く。\n\nその心は……どちらも【誰も望んでいないのに、盛大にやらかします】でしょう！",
-            f"「{theme}」と掛けまして、〈真冬のホラー映画〉と解く。\n\nその心は……どちらも【直視したくない現実がそこにはあります】でしょう！"
+            f"「{theme}」と掛けまして、〈真冬のホラー映画〉と解く。\n\nその心は……どちらも【直視したくない現実がそこにはあります】でしょう！",
+            f"「{theme}」と掛けまして、〈満員電車のくしゃみ〉と解く。\n\nその心は……どちらも【周囲の空気を一瞬で凍りつかせます】でしょう！"
         ]
         tonchi_text = random.choice(tonchi_templates)
         
         st.markdown(f"""
         <div class="card-tonchi">
-            <div style="color: #fb923c; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;">🤔 とんち館 ｜ 無理やり整いました</div>
+            <div style="color: #ff9500; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;">🤔 とんち館 ｜ 無理やり整いました</div>
             <div style="color:#f3f4f6; font-size:0.9rem; font-weight: 600; white-space: pre-line; line-height: 1.6; margin-top: 10px;">{tonchi_text}</div>
         </div>
         """, unsafe_allow_html=True)
         
-        # アート
+        # アート変換
         if uploaded_img is not None:
             st.markdown("""
             <div class="card-art">
-                <div style="color: #facc15; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;">🎨 美術館 ｜ 証拠品・強制モダンアート化</div>
+                <div style="color: #ffcc00; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;">🎨 美術館 ｜ 証拠品・強制モダンアート化</div>
             </div>
             """, unsafe_allow_html=True)
             
@@ -206,5 +210,21 @@ if st.button("🔥 一網打尽でお焚き上げを実行する"):
                 buf = io.BytesIO()
                 img.save(buf, format="PNG")
                 st.download_button("📥 成仏アートをダウンロード (PNG)", data=buf.getvalue(), file_name="otakiage-art.png", mime="image/png")
+
+        # 🚀 マーケティング施策：SNS（X）ワンタップシェアボタンの実装
+        st.markdown("<br>", unsafe_allow_html=True)
+        share_text = f"私の上手くいかなかった出来事：【{theme}】\n\nAIに盛大にお焚き上げしてもらいました🔥\n\n#令和お焚き上げ文芸館 #今日のやらかし"
+        encoded_text = urllib.parse.quote(share_text)
+        twitter_url = f"https://twitter.com/intent/tweet?text={encoded_text}"
+        
+        st.markdown(f"""
+        <div style="text-align: center; margin-top: 1.5rem; padding: 15px; background: #131826; border-radius: 12px; border: 1px dashed #374151;">
+            <p style="font-size: 0.85rem; color: #9ca3af; margin-bottom: 10px;">この成仏結果を世界に共有して供養を完了する</p>
+            <a href="{twitter_url}" target="_blank" style="display: inline-block; background: #000000; color: #ffffff; padding: 10px 20px; border-radius: 9999px; font-weight: 700; text-decoration: none; font-size: 0.9rem; border: 1px solid #374151;">
+                𝕏 でこのやらかしをシェアする
+            </a>
+        </div>
+        """, unsafe_allow_html=True)
+
 else:
-    st.info("💡 テキストや写真を準備してボタンを押すと、すべてのエンタメ変換結果が一気に縦に飛び出します！")
+    st.info("💡 テキストや写真を準備してボタンを押すと、すべてのエンタメ変換結果が一気に飛び出します！")
