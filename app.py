@@ -1,8 +1,9 @@
-import random
 import io
+import random
 import urllib.parse
 import streamlit as st
 from PIL import Image, ImageEnhance, ImageOps, ImageFilter
+import google.generativeai as genai
 
 st.set_page_config(
     page_title="令和お焚き上げ文芸館",
@@ -10,11 +11,26 @@ st.set_page_config(
     layout="centered"
 )
 
-# セッションステートの初期化（履歴管理用）
+# セッションステートの初期化
 if "history" not in st.session_state:
     st.session_state.history = []
 
-# バラエティ番組・WEBメディア風の尖ったカスタムCSS
+# --- サイドバー：APIキー設定 ---
+with st.sidebar:
+    st.markdown("### ⚙️ 設定")
+    api_key_input = st.text_input(
+        "Gemini API キー",
+        type="password",
+        placeholder="AIによる無限生成に必要です",
+        help="Google AI Studio等で取得したAPIキーを入力してください。ブラウザ内でのみ一時的に使用されます。"
+    )
+    st.markdown("---")
+    st.markdown("""
+    **💡 ヒント**
+    APIキーを設定すると、入力された「やらかし」に合わせてAIが毎回完全にオリジナルの川柳ととんちを無限に生成します！
+    """)
+
+# バラエティ番組風カスタムCSS
 st.markdown("""
 <style>
     .stApp {
@@ -23,7 +39,6 @@ st.markdown("""
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     }
     
-    /* ヘッダー：テレビのバラエティ番組のようなインパクト */
     .hero-container {
         text-align: center;
         padding: 1.8rem 1rem;
@@ -52,7 +67,6 @@ st.markdown("""
         line-height: 1.4;
     }
 
-    /* カードデザイン */
     .card-senryu {
         background: #131826;
         border: 2px solid #374151;
@@ -89,7 +103,6 @@ st.markdown("""
         margin-bottom: 0.4rem;
     }
 
-    /* 爆発力の感じられるCTAボタン */
     .stButton button {
         background: linear-gradient(135deg, #ff2d55 0%, #ff5e3a 100%);
         color: white;
@@ -119,11 +132,9 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# タブ切り替え（新規お焚き上げ vs 過去の成仏履歴）
 tab1, tab2 = st.tabs(["🔥 新規お焚き上げ", "📜 成仏の履歴書"])
 
 with tab1:
-    # 入力セクション
     st.markdown('<p class="section-label">✍️ ステップ1: やらかし・不運・黒歴史を入力する</p>', unsafe_allow_html=True)
     yarakashi_text = st.text_area(
         "",
@@ -146,33 +157,91 @@ with tab1:
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # 実行ボタン
     if st.button("🔥 全力でお焚き上げを実行する"):
         if not yarakashi_text and uploaded_img is None:
             st.warning("⚠️ まずはやらかしの内容を入力するか、写真をアップロードしてください。")
         else:
-            st.balloons()
-            
             theme = yarakashi_text.strip() if yarakashi_text else "名もなき失態"
             
-            # 多彩なバリエーションの川柳
-            senryu_templates = [
-                f"「気がつけば　{theme}の　悲劇かな」",
-                f"「全力を　注ぎ込んだ結果が　{theme}」",
-                f"「神様も　思わず二度見す　{theme}」",
-                f"「歴史とは　かくも無残な　{theme}」",
-                f"「泣く子も黙る　極上の大失敗　{theme}」"
-            ]
-            senryu_text = random.choice(senryu_templates)
+            # --- AIによる無限生成処理 ---
+            senryu_text = ""
+            tonchi_text = ""
             
-            # 謎かけ
-            tonchi_templates = [
-                f"「{theme}」と掛けまして、〈おろしたての高級じゅうたん〉と解く。\n\nその心は……どちらも【踏み入れた瞬間に、取り返しのつかない絶望が訪れます】でしょう！",
-                f"「{theme}」と掛けまして、〈サプライズゲストの登場〉と解く。\n\nその心は……どちらも【誰も望んでいないのに、盛大にやらかします】でしょう！",
-                f"「{theme}」と掛けまして、〈真冬のホラー映画〉と解く。\n\nその心は……どちらも【直視したくない現実がそこにはあります】でしょう！",
-                f"「{theme}」と掛けまして、〈満員電車のくしゃみ〉と解く。\n\nその心は……どちらも【周囲の空気を一瞬で凍りつかせます】でしょう！"
-            ]
-            tonchi_text = random.choice(tonchi_templates)
+            if api_key_input:
+                try:
+                    genai.configure(api_key=api_key_input)
+                    # 高速かつ軽量なモデルを使用
+                    model = genai.GenerativeModel('gemini-1.5-flash')
+                    
+                    prompt = f"""
+                    あなたは毒舌かつユーモアあふれるバラエティ番組の構成作家です。
+                    以下のユーザーの「やらかし・失敗談」を元に、次の2点を作成してください。
+
+                    【やらかし内容】
+                    {theme}
+
+                    1. 川柳（5・7・5の形式で、哀愁と笑いを誘うもの。「〜かな」「〜けり」などの文語体や、ドヤ顔感のあるフレーズ）
+                    2. とんち（「〇〇と掛けまして、××と解く。その心は……」の形式で、キレのあるオチ・ツッコミを入れたもの）
+
+                    出力は必ず以下の形式のJSONまたはテキストで、余計な挨拶は抜きでそれぞれ明確に分けて出力してください。
+                    [川柳]
+                    「〜」
+                    [とんち]
+                    「〜」と掛けまして、〈〜〉と解く。
+                    その心は……どちらも【〜】でしょう！
+                    """
+                    
+                    with st.spinner("✨ AIがお焚き上げの文言を無限生成中..."):
+                        response = model.generate_content(prompt)
+                        result_str = response.text
+                        
+                        # 簡易パース処理
+                        lines = result_str.strip().split("\n")
+                        s_temp = []
+                        t_temp = []
+                        mode = None
+                        for line in lines:
+                            if "[川柳]" in line:
+                                mode = "senryu"
+                                continue
+                            elif "[とんち]" in line:
+                                mode = "tonchi"
+                                continue
+                            
+                            if mode == "senryu":
+                                s_temp.append(line)
+                            elif mode == "tonchi":
+                                t_temp.append(line)
+                        
+                        senryu_text = "\n".join(s_temp).strip()
+                        tonchi_text = "\n".join(t_temp).strip()
+                        
+                        if not senryu_text or not tonchi_text:
+                            # パースに失敗した場合は全文をそのまま割り当て
+                            senryu_text = f"「気がつけば　{theme}の　悲劇かな」"
+                            tonchi_text = result_str
+                            
+                except Exception as e:
+                    st.error(f"⚠️ API生成エラー: {e}\nフォールバックとして定型モードで実行します。")
+            
+            # APIキー未設定、またはエラー時のフォールバック（従来のランダムプール）
+            if not senryu_text or not tonchi_text:
+                fallback_senryus = [
+                    f"「気がつけば　{theme}の　悲劇かな」",
+                    f"「全力を　注ぎ込んだ結果が　{theme}」",
+                    f"「神様も　思わず二度見す　{theme}」",
+                    f"「歴史とは　かくも無残な　{theme}」"
+                ]
+                fallback_tonchis = [
+                    f"「{theme}」と掛けまして、〈サプライズゲストの登場〉と解く。\n\nその心は……どちらも【誰も望んでいないのに、盛大にやらかします】でしょう！",
+                    f"「{theme}」と掛けまして、〈真冬のホラー映画〉と解く。\n\nその心は……どちらも【直視したくない現実がそこにはあります】でしょう！"
+                ]
+                senryu_text = random.choice(fallback_senryus)
+                tonchi_text = random.choice(fallback_tonchis)
+                if not api_key_input:
+                    st.info("💡 サイドバーにGemini APIキーを入力すると、AIによる完全無限のオリジナル生成に切り替わります！")
+
+            st.balloons()
             
             # 履歴に保存
             st.session_state.history.insert(0, {
@@ -205,7 +274,7 @@ with tab1:
                 </div>
                 """, unsafe_allow_html=True)
                 
-                with st.spinner("高衝撃変形エンジン作동中..."):
+                with st.spinner("高衝撃変形エンジン作動中..."):
                     img = uploaded_img.convert("RGB")
                     img = ImageEnhance.Contrast(img).enhance(3.0)
                     
@@ -244,7 +313,7 @@ with tab1:
 
     else:
         if not st.session_state.history:
-            st.info("💡 テキストや写真を準備してボタンを押すと、すべてのエンタメ変換結果が一気に飛び出します！")
+            st.info("💡 サイドバーにAPIキーを入力し、テキストや写真を準備してボタンを押すと、AIが無限のエンタメ変換結果を生み出します！")
 
 with tab2:
     st.markdown("### 📜 過去に成仏させたやらかし一覧")
